@@ -52,27 +52,30 @@ class ExamplesGenerator:
     @classmethod
     def validation_error_schema(cls, responses):
         """Change the 422 validation schema to match the one used in the API."""
-        cls.generate_nested_schema_for_code(responses, status.HTTP_422_UNPROCESSABLE_ENTITY)
-        example = {
-            "validation_errors": {
-                "summary": "VALIDATION_ERROR",
-                "value": {
-                    "status": 422,
-                    "error": {
-                        "code": "VALIDATION_ERROR",
-                        "details": [
-                            {
-                                "location": "string",
-                                "field": "string",
-                                "field_full": "string",
-                                "message": "string",
-                            }
-                        ],
-                    },
+        # check whether there are already errors with 422 status code, if not generate a basic dictionary
+        if not responses.get(status.HTTP_422_UNPROCESSABLE_ENTITY):
+            cls.generate_nested_schema_for_code(responses, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        validation_422_example = {
+            "summary": "VALIDATION_ERROR",
+            "value": {
+                "status": 422,
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "details": [
+                        {
+                            "location": "string",
+                            "field": "string",
+                            "field_full": "string",
+                            "message": "string",
+                        }
+                    ],
                 },
             },
         }
-        responses[status.HTTP_422_UNPROCESSABLE_ENTITY]["content"]["application/json"]["examples"] = example
+        responses[status.HTTP_422_UNPROCESSABLE_ENTITY]["content"]["application/json"].setdefault("examples", {})[
+            "VALIDATION_ERROR"
+        ] = validation_422_example
 
 
 generate_examples = ExamplesGenerator.generate_examples

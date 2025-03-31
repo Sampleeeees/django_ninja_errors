@@ -12,16 +12,11 @@ class BaseHTTPException(HttpError, abc.ABC):
     Base class for HTTP exceptions with enforced structure and OpenAPI example.
     """
 
-    status_code = 400
+    status_code: int = 400
 
     def __init__(self) -> None:
+        """Initialize the exception."""
         super().__init__(status_code=self.status_code, message=self.message)
-
-    @property
-    @abc.abstractmethod
-    def message(self) -> str:
-        """Error message to be returned in the response."""
-        ...
 
     @abc.abstractmethod
     def example(self) -> dict:
@@ -46,14 +41,9 @@ class DefaultHTTPException(BaseHTTPException):
         field: str | None = None,
     ) -> None:
         """Initialize base exception."""
-        self._message = message or self.message
-        self._field = field if field else self.field
+        self.message = message if message else self.message
+        self.field = field if field else self.field
         super().__init__()
-
-    @property
-    def message(self) -> str:
-        """Return a short error message describing the exception."""
-        return self._message
 
     def example(self) -> dict:
         """Return an example of the error response. This is used in the OpenAPI docs."""
@@ -73,7 +63,6 @@ class DefaultHTTPException(BaseHTTPException):
                 },
             },
         }
-
 
 
 # region: Default auth exceptions

@@ -22,11 +22,42 @@ class DjangoSchema(Schema):
         from_attributes = True
         alias_generator = camelize
         populate_by_name = True
-        str_strip_whitespace = True
+        str_strip_whitespace = True  # remove whitespaces from strings
+
+        @staticmethod
+        def json_schema_extra(schema: dict, model_class: type) -> None:
+            """
+            If the model class defines `schema_extra()`, merge it into the schema.
+
+            Example:
+                @classmethod
+                def schema_extra(cls) -> dict:
+                    return {
+                        "example": {
+                            "users": [
+                                {
+                                    "name": "Adam",
+                                    "age": 35,
+                                    "language": "en",
+                                    "is_staff": True
+                                }
+                            ]
+                        }
+                    }
+            """
+            if hasattr(model_class, "schema_extra") and callable(model_class.schema_extra):
+                extra = model_class.schema_extra()
+                if isinstance(extra, dict):
+                    schema.update(extra)
+
+    @classmethod
+    def schema_extra(cls):
+        """Method for displaying custom schema in OpenAPI docs."""
+        ...
 
     def compute(self):
         """Compute all fields."""
-        pass
+        ...
 
     def adjust(self, **kwargs):
         """Adjust fields."""
@@ -41,9 +72,9 @@ class DjangoSchema(Schema):
         return self
 
     @classmethod
-    def from_orm(cls, obj: Any):
+    def from_orm(cls, obj: Any, **kwargs):
         """Create schema from ORM model."""
-        obj = super().from_orm(obj)
+        obj = super().from_orm(obj, **kwargs)
         obj.compute()  # noqa
         return obj
 
